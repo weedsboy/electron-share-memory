@@ -1,0 +1,25 @@
+{
+  "name": "electron-share-memery",
+  "version": "1.0.0",
+  "description": "Shared memory between processes.",
+  "main": "lib/index.js",
+  "scripts": {
+    "install": "node-gyp-build"
+  },
+  "repository": "",
+  "license": "MIT",
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^3.0.0",
+    "node-gyp-build": "^4.2.3"
+  },
+  "author": {
+    "email": "chenyanggo@163.com",
+    "name": "weedsboy"
+  },
+  "keywords": [
+    "electron",
+    "share",
+    "memery"
+  ]
+}
