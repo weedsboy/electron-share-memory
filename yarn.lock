@@ -14,12 +14,12 @@ file-uri-to-path@1.0.0:
   resolved "https://registry.npm.taobao.org/file-uri-to-path/download/file-uri-to-path-1.0.0.tgz#553a7b8446ff6f684359c445f1e37a05dacc33dd"
   integrity sha1-VTp7hEb/b2hDWcRF8eN6BdrMM90=
 
-node-addon-api@*:
+node-addon-api@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npm.taobao.org/node-addon-api/download/node-addon-api-3.0.0.tgz?cache=0&sync_timestamp=1595262923985&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fnode-addon-api%2Fdownload%2Fnode-addon-api-3.0.0.tgz#812446a1001a54f71663bed188314bba07e09247"
   integrity sha1-gSRGoQAaVPcWY77RiDFLugfgkkc=
 
-node-gyp-build@^4.2.0:
+node-gyp-build@^4.2.3:
   version "4.2.3"
   resolved "https://registry.npm.taobao.org/node-gyp-build/download/node-gyp-build-4.2.3.tgz?cache=0&sync_timestamp=1595241864011&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fnode-gyp-build%2Fdownload%2Fnode-gyp-build-4.2.3.tgz#ce6277f853835f718829efb47db20f3e4d9c4739"
   integrity sha1-zmJ3+FODX3GIKe+0fbIPPk2cRzk=
