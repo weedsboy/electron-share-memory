@@ -6,7 +6,7 @@
   "scripts": {
     "install": "node-gyp-build"
   },
-  "repository": "",
+  "repository": "https://github.com/weedsboy/electron-share-memory.git",
   "license": "MIT",
   "dependencies": {
     "bindings": "^1.5.0",
