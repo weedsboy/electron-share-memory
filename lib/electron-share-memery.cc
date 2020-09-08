@@ -98,18 +98,67 @@ Napi::Value SetShareMemery(const Napi::CallbackInfo& info) {
 			failv("[SetShareMemery] could not map: \"%s\" (ERROR: %s)", name.c_str(), err.c_str());
 		}
 
-		memcpy(ptr, data, dataSize);
-
+		//存储句柄、指针
 		_ShareMemerySetMap[name].handle = mapping;
 		_ShareMemerySetMap[name].ptr = ptr;
-		_ShareMemerySetMap[name].size = dataSize;
+
+		//获取对应位置的指针
+		unsigned int* memPtr = (unsigned int*)ptr;
+		unsigned int* memFlagPtr = &memPtr[0];
+		unsigned int* memMaxSizePtr = &memPtr[1];
+		unsigned int* memDataSizePtr = &memPtr[2];
+		unsigned int* memDataPtr = &memPtr[3];
+
+		unsigned int uintLength = sizeof(unsigned int);
+
+		//设置写状态
+		unsigned int flag = 1;
+		memcpy(memFlagPtr, &flag, uintLength);
+
+		//设置内存长度
+		unsigned int maxMemSize = maxSize;
+		memcpy(memMaxSizePtr, &maxMemSize, uintLength);
+
+		//设置数据长度
+		unsigned int dataMemSize = dataSize;
+		memcpy(memDataSizePtr, &dataMemSize, uintLength);
+
+		//设置数据内容
+		memcpy(memDataPtr, data.Data(), dataMemSize);
+
+		//还原写状态
+		flag = 0;
+		memcpy(memFlagPtr, &flag, uintLength);
 	} 
 	else
 	{
-		memcpy(_ShareMemerySetMap[name].ptr, data, dataSize);
+		//获取对应位置的指针
+		void* ptr = _ShareMemerySetMap[name].ptr;
+		unsigned int* memPtr = (unsigned int*)ptr;
+		unsigned int* memFlagPtr = &memPtr[0];
+		unsigned int* memMaxSizePtr = &memPtr[1];
+		unsigned int* memDataSizePtr = &memPtr[2];
+		unsigned int* memDataPtr = &memPtr[3];
+
+		unsigned int uintLength = sizeof(unsigned int);
+
+		//设置写状态
+		unsigned int flag = 1;
+		memcpy(memFlagPtr, &flag, uintLength);
+
+		//设置数据长度
+		unsigned int dataMemSize = dataSize;
+		memcpy(memDataSizePtr, &dataMemSize, uintLength);
+
+		//设置数据内容
+		memcpy(memDataPtr, data.Data(), dataMemSize);
+
+		//还原写状态
+		flag = 0;
+		memcpy(memFlagPtr, &flag, uintLength);
 	}
 
-	return Napi::ArrayBuffer::New(info.Env(), true);
+	return Napi::Boolean::New(env, true);
 }
 
 Napi::Value GetShareMemery(const Napi::CallbackInfo& info) {
@@ -141,10 +190,34 @@ Napi::Value GetShareMemery(const Napi::CallbackInfo& info) {
 
 		_ShareMemerySetMap[name].handle = mapping;
 		_ShareMemerySetMap[name].ptr = ptr;
-		_ShareMemerySetMap[name].size = 1024 * 1024;
 	}
 
-	return Napi::ArrayBuffer::New(env, _ShareMemerySetMap[name].ptr, (size_t)_ShareMemerySetMap[name].size);
+	//获取对应位置的指针
+	void* ptr = _ShareMemerySetMap[name].ptr;
+	unsigned int* memPtr = (unsigned int*)ptr;
+	unsigned int* memFlagPtr = &memPtr[0];
+	unsigned int* memMaxSizePtr = &memPtr[1];
+	unsigned int* memDataSizePtr = &memPtr[2];
+	unsigned int* memDataPtr = &memPtr[3];
+
+	unsigned int uintLength = sizeof(unsigned int);
+
+	unsigned int flag;
+	memcpy(&flag, memFlagPtr, uintLength);
+
+	//如果当前正在写入，则返回空
+	if (flag == 1)
+	{
+		return Napi::ArrayBuffer::New(env, nullptr, 0);
+	}
+	else 
+	{
+		//设置数据长度
+		unsigned int dataMemSize;
+		memcpy(&dataMemSize, memDataSizePtr, uintLength);
+
+		return Napi::ArrayBuffer::New(env, memDataPtr, dataMemSize);
+	}
 }
 
 Napi::Value ClearShareMemery(const Napi::CallbackInfo& info) {

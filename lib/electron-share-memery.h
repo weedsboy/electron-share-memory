@@ -10,7 +10,6 @@ struct ShareMemeryInfo
 {
     HANDLE handle;
 	void* ptr;
-	unsigned int size;
 };
 
 static std::map<std::string, ShareMemeryInfo> _ShareMemerySetMap; //共享内存设置列表
