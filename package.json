@@ -1,5 +1,5 @@
 {
-  "name": "electron-share-memery",
+  "name": "electron-share-memory",
   "version": "1.0.0",
   "description": "Shared memory between processes.",
   "main": "lib/index.js",
@@ -20,6 +20,6 @@
   "keywords": [
     "electron",
     "share",
-    "memery"
+    "memory"
   ]
 }

@@ -1,4 +1,4 @@
-## electron-share-memery
+## electron-share-memory
 
 Shared memory between processes.
 

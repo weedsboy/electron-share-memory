@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "electron_share_memery",
+      "target_name": "electron_share_memory",
       "sources": [ ],
       "cflags!": [ "-fno-exceptions" ],
       "cflags_cc!": [ "-fno-exceptions" ],
@@ -11,7 +11,7 @@
       ],
       "conditions": [
         ['OS=="win"', {
-          "sources": [ "lib/electron-share-memery.cc", "lib/addon.cc" ],
+          "sources": [ "lib/electron-share-memory.cc", "lib/addon.cc" ],
         }]
       ]
     }

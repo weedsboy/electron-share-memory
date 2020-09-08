@@ -4,11 +4,17 @@
 #include <iostream>
 #include <string>
 #include <cstdio>
-#include "electron-share-memery.h"
+#include "electron-share-memory.h"
 
 using namespace Napi;
 using namespace std;
 
+enum MemoryStatus
+{
+	mem_free = 0,	//Memory is free.
+	mem_write = 1,	//Memory is being written.
+	mem_read = 1	//Memory is reading.
+};
 
 // trim from end of string (right)
 inline std::string& rtrim(std::string& s)
@@ -59,7 +65,7 @@ std::string GetLastErrorAsString()
 
 #define failv(...) { failFormat(__VA_ARGS__); return Napi::Value(); }
 
-Napi::Value SetShareMemery(const Napi::CallbackInfo& info) {
+Napi::Value SetShareMemory(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env();
 	Napi::HandleScope scope(env);
 
@@ -76,7 +82,7 @@ Napi::Value SetShareMemery(const Napi::CallbackInfo& info) {
 
 	HANDLE mapping = nullptr;
 
-	if (_ShareMemerySetMap.find(name) == _ShareMemerySetMap.end())
+	if (_ShareMemorySetMap.find(name) == _ShareMemorySetMap.end())
 	{
 		mapping = CreateFileMapping(
 			INVALID_HANDLE_VALUE,    // use paging file
@@ -88,19 +94,19 @@ Napi::Value SetShareMemery(const Napi::CallbackInfo& info) {
 
 		if (mapping == nullptr) {
 			auto err = GetLastErrorAsString();
-			failv("[SetShareMemery] could not open \"%s\" (ERROR: %s)", name.c_str(), err.c_str());
+			failv("[SetShareMemory] could not open \"%s\" (ERROR: %s)", name.c_str(), err.c_str());
 		}
 
 		void* ptr = MapViewOfFile(mapping, FILE_MAP_WRITE, 0, 0, (int64_t)maxSize);
 		if (ptr == nullptr) {
 			auto err = GetLastErrorAsString();
 			CloseHandle(mapping);
-			failv("[SetShareMemery] could not map: \"%s\" (ERROR: %s)", name.c_str(), err.c_str());
+			failv("[SetShareMemory] could not map: \"%s\" (ERROR: %s)", name.c_str(), err.c_str());
 		}
 
 		//存储句柄、指针
-		_ShareMemerySetMap[name].handle = mapping;
-		_ShareMemerySetMap[name].ptr = ptr;
+		_ShareMemorySetMap[name].handle = mapping;
+		_ShareMemorySetMap[name].ptr = ptr;
 
 		//获取对应位置的指针
 		unsigned int* memPtr = (unsigned int*)ptr;
@@ -112,7 +118,7 @@ Napi::Value SetShareMemery(const Napi::CallbackInfo& info) {
 		unsigned int uintLength = sizeof(unsigned int);
 
 		//设置写状态
-		unsigned int flag = 1;
+		unsigned int flag = mem_free;
 		memcpy(memFlagPtr, &flag, uintLength);
 
 		//设置内存长度
@@ -133,7 +139,7 @@ Napi::Value SetShareMemery(const Napi::CallbackInfo& info) {
 	else
 	{
 		//获取对应位置的指针
-		void* ptr = _ShareMemerySetMap[name].ptr;
+		void* ptr = _ShareMemorySetMap[name].ptr;
 		unsigned int* memPtr = (unsigned int*)ptr;
 		unsigned int* memFlagPtr = &memPtr[0];
 		unsigned int* memMaxSizePtr = &memPtr[1];
@@ -161,7 +167,7 @@ Napi::Value SetShareMemery(const Napi::CallbackInfo& info) {
 	return Napi::Boolean::New(env, true);
 }
 
-Napi::Value GetShareMemery(const Napi::CallbackInfo& info) {
+Napi::Value GetShareMemory(const Napi::CallbackInfo& info) {
 	Napi::Env env = info.Env();
 	Napi::HandleScope scope(env);
 
@@ -172,28 +178,28 @@ Napi::Value GetShareMemery(const Napi::CallbackInfo& info) {
 
 	HANDLE mapping = nullptr;
 
-	if (_ShareMemeryGetMap.find(name) == _ShareMemeryGetMap.end())
+	if (_ShareMemoryGetMap.find(name) == _ShareMemoryGetMap.end())
 	{
 		mapping = OpenFileMapping(FILE_MAP_READ, false, name.c_str());
 
 		if (mapping == nullptr) {
 			auto err = GetLastErrorAsString();
-			failv("[GetShareMemery] could not open \"%s\" (ERROR: %s)", name.c_str(), err.c_str());
+			failv("[GetShareMemory] could not open \"%s\" (ERROR: %s)", name.c_str(), err.c_str());
 		}
 
 		void* ptr = MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, 0);
 		if (ptr == nullptr) {
 			auto err = GetLastErrorAsString();
 			CloseHandle(mapping);
-			failv("[GetShareMemery] could not map: \"%s\" (ERROR: %s)", name.c_str(), err.c_str());
+			failv("[GetShareMemory] could not map: \"%s\" (ERROR: %s)", name.c_str(), err.c_str());
 		}
 
-		_ShareMemerySetMap[name].handle = mapping;
-		_ShareMemerySetMap[name].ptr = ptr;
+		_ShareMemorySetMap[name].handle = mapping;
+		_ShareMemorySetMap[name].ptr = ptr;
 	}
 
 	//获取对应位置的指针
-	void* ptr = _ShareMemerySetMap[name].ptr;
+	void* ptr = _ShareMemorySetMap[name].ptr;
 	unsigned int* memPtr = (unsigned int*)ptr;
 	unsigned int* memFlagPtr = &memPtr[0];
 	unsigned int* memMaxSizePtr = &memPtr[1];
@@ -220,20 +226,20 @@ Napi::Value GetShareMemery(const Napi::CallbackInfo& info) {
 	}
 }
 
-Napi::Value ClearShareMemery(const Napi::CallbackInfo& info) {
-    for (auto item : _ShareMemerySetMap)
+Napi::Value ClearShareMemory(const Napi::CallbackInfo& info) {
+    for (auto item : _ShareMemorySetMap)
     {
 		UnmapViewOfFile(item.second.ptr);
 		CloseHandle(item.second.handle);
     }
-	_ShareMemerySetMap.clear();
+	_ShareMemorySetMap.clear();
 
-	for (auto item : _ShareMemeryGetMap)
+	for (auto item : _ShareMemoryGetMap)
 	{
 		UnmapViewOfFile(item.second.ptr);
 		CloseHandle(item.second.handle);
 	}
-	_ShareMemeryGetMap.clear();
+	_ShareMemoryGetMap.clear();
 
 	return Napi::Boolean::New(info.Env(), true);
 }
