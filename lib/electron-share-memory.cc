@@ -151,12 +151,12 @@ Napi::Value GetShareMemory(const Napi::CallbackInfo& info) {
 			return Napi::ArrayBuffer::New(env, nullptr, 0);
 		}
 
-		_ShareMemorySetMap[name].handle = mapping;
-		_ShareMemorySetMap[name].ptr = ptr;
+		_ShareMemoryGetMap[name].handle = mapping;
+		_ShareMemoryGetMap[name].ptr = ptr;
 	}
 
 	//获取对应位置的指针
-	void* ptr = _ShareMemorySetMap[name].ptr;
+	void* ptr = _ShareMemoryGetMap[name].ptr;
 	unsigned int* memPtr = (unsigned int*)ptr;
 	unsigned int* memFlagPtr = &memPtr[0];
 	unsigned int* memMaxSizePtr = &memPtr[1];
@@ -171,19 +171,11 @@ Napi::Value GetShareMemory(const Napi::CallbackInfo& info) {
 	//如果当前正空闲，则读取数据
 	if (flag == MEMORY_FREE)
 	{
-		//设置读状态
-		flag = MEMORY_READ;
-		memcpy(memFlagPtr, &flag, uintLength);
-
 		//设置数据长度
 		unsigned int dataMemSize;
 		memcpy(&dataMemSize, memDataSizePtr, uintLength);
 
 		auto data = Napi::ArrayBuffer::New(env, memDataPtr, dataMemSize);
-
-		//设置空闲状态
-		flag = MEMORY_FREE;
-		memcpy(memFlagPtr, &flag, uintLength);
 
 		return data;
 	}
